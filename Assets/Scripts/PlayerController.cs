@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class PlayerController : MonoBehaviour
 {
@@ -12,7 +13,6 @@ public class PlayerController : MonoBehaviour
     public bool GameOver { get; private set; } = false;
     public bool Startup { get; private set; } = true;
     public bool IsPlaying { get => !Startup && !GameOver; }
-    public float Score { get; private set; } = 0;
     public bool IsDashing { get; private set; } = false;
 
     public readonly float DashModifier = 2.0f;
@@ -29,12 +29,17 @@ public class PlayerController : MonoBehaviour
     private bool isOnGround = true;
     private uint doubleJumpsLeft = 0;
 
+    private ScoreManager scoreManager;
+
     private void Awake()
     {
         animator = GetComponent<Animator>();
         rigidbody = GetComponent<Rigidbody>();
         audioSource = GetComponent<AudioSource>();
         Physics.gravity *= gravityModifier;
+
+        scoreManager = FindAnyObjectByType<ScoreManager>();
+        scoreManager.Score = 0;
     }
 
     private void Update()
@@ -60,7 +65,7 @@ public class PlayerController : MonoBehaviour
         {
             var scoreChange = Time.deltaTime;
             if (IsDashing) scoreChange *= dashScoreModifier;
-            Score += scoreChange;
+            scoreManager.Score += scoreChange;
 
             var speed = 1f;
             if (IsDashing) speed *= DashModifier;
@@ -92,6 +97,11 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    private void GotoGameOverScene()
+    {
+        SceneManager.LoadScene(2);
+    }
+
     private void OnCollisionEnter(Collision collision)
     {
         if (collision.gameObject.CompareTag("Ground"))
@@ -108,6 +118,8 @@ public class PlayerController : MonoBehaviour
             explosionParticle.Play();
             dirtParticle.Stop();
             audioSource.PlayOneShot(crashSound, 1.0f);
+
+            Invoke(nameof(GotoGameOverScene), 2f);
         }
     }
 }
