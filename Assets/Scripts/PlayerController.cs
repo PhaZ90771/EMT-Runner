@@ -26,6 +26,7 @@ public class PlayerController : MonoBehaviour
     private AudioSource audioSource;
     private bool isOnGround = true;
     private uint doubleJumpsLeft = 0;
+    private Vector3 originalGravity = new Vector3(0, -9.81f, 0);
 
     private ScoreManager scoreManager;
 
@@ -34,7 +35,7 @@ public class PlayerController : MonoBehaviour
         animator = GetComponent<Animator>();
         rigidbody = GetComponent<Rigidbody>();
         audioSource = GetComponent<AudioSource>();
-        Physics.gravity *= gravityModifier;
+        Physics.gravity = originalGravity * gravityModifier;
 
         scoreManager = FindAnyObjectByType<ScoreManager>();
         scoreManager.Score = 0;
@@ -97,7 +98,8 @@ public class PlayerController : MonoBehaviour
 
     private void GotoGameOverScene()
     {
-        SceneManager.LoadScene(2);
+        Physics.gravity = originalGravity;
+        SceneManager.LoadScene(2); // Game Over scene index
     }
 
     private void OnCollisionEnter(Collision collision)
